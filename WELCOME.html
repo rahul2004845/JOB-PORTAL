@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Availability Management</title>
+    <style>
+        /* Styling for the entire page */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-image: url('graduation.jpg'); /* Add your image URL here */
+            background-size: cover; /* Ensures the background covers the entire screen */
+            background-position: center; /* Centers the background image */
+            background-repeat: no-repeat; /* Prevents the background from repeating */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Form container styling */
+        .container {
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
+            overflow: hidden; /* Prevents overflow issues */
+        }
+
+        /* Container for the form and table */
+        
+        h2 {
+            text-align: center;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[type="submit"], .button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover, .button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Styling the table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        td {
+            word-wrap: break-word; /* Ensures long text wraps inside the cell */
+        }
+
+        /* Styling the action buttons */
+        .action-btns {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .action-btns .button {
+            padding: 5px;
+            font-size: 14px;
+            flex-grow: 1;
+            background-color: #28a745;
+            border-radius: 5px;
+        }
+
+        .action-btns .button.delete {
+            background-color: #dc3545;
+        }
+
+        .action-btns .button:hover {
+            opacity: 0.9;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+            }
+            table {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Job Availability Management</h2>
+
+    <!-- Form to add or update job listings -->
+    <form id="jobForm" onsubmit="saveJob(event)">
+        <input type="hidden" id="jobId">
+        <input type="text" id="jobTitle" placeholder="Job Title" required><br>
+        <input type="text" id="jobDescription" placeholder="Job Description" required><br>
+        <input type="number" id="jobVacancies" placeholder="Number of Vacancies" required><br>
+        <input type="submit" value="Add Job">
+    </form>
+
+    <!-- Job listing table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Description</th>
+                <th>Vacancies</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="jobList"></tbody>
+    </table>
+</div>
+
+<script>
+    let jobs = JSON.parse(localStorage.getItem('jobs')) || [];
+
+    // Function to display jobs in the table
+    function displayJobs() {
+        const jobList = document.getElementById('jobList');
+        jobList.innerHTML = '';
+
+        jobs.forEach((job, index) => {
+            jobList.innerHTML += `
+                <tr>
+                    <td>${job.title}</td>
+                    <td>${job.description}</td>
+                    <td>${job.vacancies}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="button" onclick="editJob(${index})">Edit</button>
+                            <button class="button delete" onclick="deleteJob(${index})">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    // Function to save a job (Add or Update)
+    function saveJob(event) {
+        event.preventDefault();
+        const jobId = document.getElementById('jobId').value;
+        const jobTitle = document.getElementById('jobTitle').value;
+        const jobDescription = document.getElementById('jobDescription').value;
+        const jobVacancies = document.getElementById('jobVacancies').value;
+
+        const job = { title: jobTitle, description: jobDescription, vacancies: jobVacancies };
+
+        if (jobId === '') {
+            // Add new job
+            jobs.push(job);
+        } else {
+            // Update existing job
+            jobs[jobId] = job;
+        }
+
+        localStorage.setItem('jobs', JSON.stringify(jobs));
+        displayJobs();
+        clearForm();
+    }
+
+    // Function to edit a job
+    function editJob(index) {
+        const job = jobs[index];
+        document.getElementById('jobId').value = index;
+        document.getElementById('jobTitle').value = job.title;
+        document.getElementById('jobDescription').value = job.description;
+        document.getElementById('jobVacancies').value = job.vacancies;
+        document.querySelector('input[type="submit"]').value = 'Update Job';
+    }
+
+    // Function to delete a job
+    function deleteJob(index) {
+        jobs.splice(index, 1);
+        localStorage.setItem('jobs', JSON.stringify(jobs));
+        displayJobs();
+    }
+
+    // Clear form fields
+    function clearForm() {
+        document.getElementById('jobId').value = '';
+        document.getElementById('jobTitle').value = '';
+        document.getElementById('jobDescription').value = '';
+        document.getElementById('jobVacancies').value = '';
+        document.querySelector('input[type="submit"]').value = 'Add Job';
+    }
+
+    // Load jobs when the page is loaded
+    window.onload = displayJobs;
+</script>
+
+</body>
+</html>
